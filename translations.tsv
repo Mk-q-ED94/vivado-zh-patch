@@ -1,0 +1,180 @@
+# Exact English label<TAB>Chinese label. Avoid file names, user data and editor contents.
+File	文件
+Edit	编辑
+View	视图
+Tools	工具
+Window	窗口
+Help	帮助
+Flow	流程
+Layout	布局
+Project	项目
+Open Project	打开项目
+Open Project...	打开项目...
+Create Project	创建项目
+New Project...	新建项目...
+Open File...	打开文件...
+Close Project	关闭项目
+Save Project...	保存项目...
+Save	保存
+Save As...	另存为...
+Save All	全部保存
+Exit	退出
+Undo	撤销
+Redo	重做
+Cut	剪切
+Copy	复制
+Paste	粘贴
+Delete	删除
+Select All	全选
+Find	查找
+Find...	查找...
+Refresh	刷新
+Properties	属性
+Settings	设置
+Project Settings...	项目设置...
+Project Summary	项目摘要
+Flow Navigator	流程导航
+Project Manager	项目管理
+Sources	源文件
+Constraints	约束
+Simulation Sources	仿真源文件
+Design Sources	设计源文件
+Add Sources	添加源文件
+Add Sources...	添加源文件...
+Add or Create Design Sources	添加或创建设计源文件
+Add or Create Constraints	添加或创建约束文件
+Add or Create Simulation Sources	添加或创建仿真源文件
+Create File	创建文件
+Add Files	添加文件
+Add Directories	添加文件夹
+Remove	移除
+Remove File from Project	从项目中移除文件
+Set as Top	设为顶层
+IP Catalog	IP 目录
+Create Block Design	创建模块设计
+Create HDL Wrapper...	创建 HDL 包装文件...
+Validate Design	验证设计
+Generate Output Products...	生成输出文件...
+Create and Package New IP...	创建并封装新 IP...
+Open Block Design	打开模块设计
+RTL Analysis	RTL 分析
+Open Elaborated Design	打开展开后的设计
+Schematic	原理图
+Simulation	仿真
+Run Simulation	运行仿真
+Run Behavioral Simulation	运行行为仿真
+Run Post-Synthesis Functional Simulation	运行综合后功能仿真
+Run Post-Implementation Functional Simulation	运行实现后功能仿真
+Run Post-Implementation Timing Simulation	运行实现后时序仿真
+Close Simulation	关闭仿真
+Synthesis	综合
+Run Synthesis	运行综合
+Open Synthesized Design	打开综合后的设计
+Implementation	实现
+Run Implementation	运行实现
+Open Implemented Design	打开实现后的设计
+Generate Bitstream	生成比特流
+Program and Debug	编程与调试
+Open Hardware Manager	打开硬件管理器
+Open Target	打开目标设备
+Auto Connect	自动连接
+Program Device	烧录器件
+Program Device...	烧录器件...
+Disconnect	断开连接
+Report Utilization...	生成资源利用率报告...
+Report Timing Summary...	生成时序摘要报告...
+Report Utilization	资源利用率报告
+Report Timing Summary	时序摘要报告
+Open Log File	打开日志文件
+Open Journal File	打开操作记录文件
+Tcl Console	Tcl 控制台
+Messages	消息
+Warnings	警告
+Errors	错误
+Log	日志
+Reports	报告
+Status	状态
+Name	名称
+Type	类型
+Version	版本
+Description	说明
+Location	位置
+Project Name	项目名称
+Project Location	项目位置
+Project Type	项目类型
+Default Part	默认器件
+Part	器件
+Board	开发板
+Boards	开发板
+Family	系列
+Device	器件
+Package	封装
+Speed	速度等级
+Vendor	厂商
+Language	语言
+Verilog	Verilog
+VHDL	VHDL
+Target Language	目标语言
+Simulator Language	仿真语言
+Top Module Name	顶层模块名称
+Top Module	顶层模块
+General	常规
+Output	输出
+Input	输入
+Yes	是
+No	否
+OK	确定
+Cancel	取消
+Apply	应用
+Close	关闭
+Next	下一步
+Next >	下一步 >
+Back	上一步
+< Back	< 上一步
+Finish	完成
+Browse	浏览
+Browse...	浏览...
+Search	搜索
+Filter	筛选
+All	全部
+None	无
+Reset	重置
+Run	运行
+Stop	停止
+Pause	暂停
+Zoom In	放大
+Zoom Out	缩小
+Zoom Fit	缩放至适合窗口
+New Project	新建项目
+Open Example Project	打开示例项目
+Quick Start	快速开始
+Recent Projects	最近项目
+Getting Started	入门指南
+Learn More	了解更多
+Welcome	欢迎
+Hierarchy	层次结构
+Libraries	库
+Compile Order	编译顺序
+Source File Properties	源文件属性
+Design Runs	设计运行
+IP Status	IP 状态
+Dashboard	仪表板
+Settings...	设置...
+New File...	新建文件...
+Open...	打开...
+Save As	另存为
+Report	报告
+Open Example Project...	打开示例项目...
+Tasks	任务
+Learning Center	学习中心
+Documentation and Tutorials	文档与教程
+Manage IP	管理 IP
+Project name:	项目名称：
+Project location:	项目位置：
+Create project subdirectory	创建项目子目录
+Create a New Vivado Project	创建新的 Vivado 项目
+IP Integrator	IP 集成器
+Language Templates	语言模板
+Generate Block Design	生成块设计
+Run Linter	运行语法检查
+Add Configuration Memory Device	添加配置存储器件

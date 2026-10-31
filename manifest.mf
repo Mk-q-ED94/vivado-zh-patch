@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Premain-Class: VivadoChineseAgentV2
+Agent-Class: VivadoChineseAgentV2
+Can-Redefine-Classes: false
+Can-Retransform-Classes: false
+
