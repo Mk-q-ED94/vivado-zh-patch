@@ -19,13 +19,13 @@
 | 项目 | 状态 |
 | --- | --- |
 | Windows + Vivado 2025.2 | 已检查启动、注入、重复注入保护、项目向导及部分导航操作 |
-| Java 11、21 | 使用 Vivado 附带的运行时完成组件基础自检 |
-| Java 8 | 编译目标为 Java 8；尚未在真实 Java 8 运行时测试 |
+| Java 8、11、17、21 | Windows GitHub Actions 的 Temurin 运行时组件自检通过；不包含 Vivado 本体 |
+| 本机 Java 11、21 | 使用 Vivado 附带的运行时完成组件基础自检 |
 | 其他 Vivado 版本 | 通用控件翻译属实验性；2025.2 流程导航的内部类适配不会用于未知版本 |
 
 不同版本可能调整界面内部实现；字节码可加载不等于所有界面和功能均已兼容。补丁不会遍历编辑器、表格、列表或普通树的数据渲染区域，也不会替换 Verilog 源文件、Tcl 命令或 Vivado 的日志文字；汉化后的显示文本仍可能影响少数依赖文本的操作，请使用前备份重要工程。
 
-仓库的 Windows GitHub Actions 包含 Java 8、11、17、21 的自动化自检，以及使用伪安装目录的启动脚本测试。自检不包含 Vivado 程序本身；各版本的实际运行结果请查看 Actions，不应据此推断所有 Vivado 版本均已通过验证。
+仓库的 Windows GitHub Actions 包含 Java 8、11、17、21 的自动化自检，以及使用伪安装目录的启动脚本测试；[兼容性测试记录](https://github.com/Mk-q-ED94/vivado-zh-patch/actions/runs/41174638397)中四个 Java 版本均已通过。自检不包含 Vivado 程序本身，不应据此推断所有 Vivado 版本均已通过验证。
 
 ## 查找安装与参数
 
