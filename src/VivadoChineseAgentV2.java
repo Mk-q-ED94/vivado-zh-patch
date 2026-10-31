@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.jar.*;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeCellRenderer;
 import java.lang.instrument.Instrumentation;
 
@@ -18,9 +19,11 @@ public final class VivadoChineseAgentV2 {
     private static long total = 0;
     private static final Map<Component,Boolean> inspected = new WeakHashMap<>();
     private static final Set<String> inspectedNodes = new HashSet<>();
-    private static final Map<JTree,Boolean> flowTrees = new WeakHashMap<>();
+    private static final Map<JTree,Boolean> flowTreeFailures = new WeakHashMap<>();
     private static volatile boolean flow20252;
-    private static final String MARKER = "vivado.zh.patch.v2.active";
+    static final String MARKER = "vivado.zh.patch.v2.active";
+    static final String BUILD_MARKER = "vivado.zh.patch.build";
+    static final String BUILD_VERSION = "2.1.0";
 
     public static void premain(String options, Instrumentation instrumentation) {
         try {
@@ -31,7 +34,10 @@ public final class VivadoChineseAgentV2 {
         initialize(options, true);
     }
     private static synchronized void initialize(String options, boolean attach) throws Exception {
-        if ("true".equals(System.getProperty(MARKER))) return;
+        if ("true".equals(System.getProperty(MARKER))) {
+            if (BUILD_VERSION.equals(System.getProperty(BUILD_MARKER))) return;
+            throw new IllegalStateException("UPDATE_REQUIRES_RESTART: a different patch build is already active");
+        }
         base = Paths.get(VivadoChineseAgentV2.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
         try {
             Class.forName("VivadoChineseAgent", false, ClassLoader.getSystemClassLoader());
@@ -49,6 +55,7 @@ public final class VivadoChineseAgentV2 {
         flow20252 = "2025.2".equals(version);
         log("agent v2 loaded; dictionary=" + translations.size() + "; java=" + System.getProperty("java.version") + "; Vivado=" + version + "; flow20252=" + flow20252);
         if (main.startsWith("TranslationSelfTest")) return;
+        System.setProperty(BUILD_MARKER, BUILD_VERSION);
         System.setProperty(MARKER, "true");
         EventQueue.invokeLater(() -> {
             javax.swing.Timer timer = new javax.swing.Timer(1200, e -> {
@@ -87,8 +94,10 @@ public final class VivadoChineseAgentV2 {
         } catch (Exception ignored) { }
     }
     public static void translateTree(Component c) {
-        // Do not touch editable text, tables, trees, console output, editor content,
-        // dynamic project names, files, command strings, or labels not in the dictionary.
+        // Cell renderers and editors can contain user data that happens to match a
+        // dictionary entry. Never recurse through their component hierarchies.
+        if (c instanceof JTextComponent || c instanceof JTable || c instanceof JList ||
+            c instanceof JComboBox || c instanceof CellRendererPane) return;
         if (Boolean.getBoolean("vivado.zh.debug") && c instanceof JTree && !inspected.containsKey(c)) {
             inspected.put(c,Boolean.TRUE);
             JTree tree=(JTree)c;
@@ -97,17 +106,22 @@ public final class VivadoChineseAgentV2 {
         }
         // Vivado 2025.2 Flow Navigator uses a custom tree. Wrap only its renderer;
         // leave the model, node values and action handling entirely unchanged.
-        if (flow20252 && c instanceof JTree && c.getClass().getName().equals("ui.views.S.b.g") && !flowTrees.containsKey(c)) {
+        if (flow20252 && c instanceof JTree && c.getClass().getName().equals("ui.views.S.b.g")) {
             JTree tree=(JTree)c;
             try {
                 TreeCellRenderer original=(TreeCellRenderer)tree.getClass().getMethod("getWrappedCellRenderer").invoke(tree);
-                if (original != null) {
+                if (original != null && !(original instanceof FlowRenderer)) {
                     tree.setCellRenderer(new FlowRenderer(original));
-                    flowTrees.put(tree,Boolean.TRUE); tree.revalidate(); tree.repaint();
+                    flowTreeFailures.remove(tree); tree.revalidate(); tree.repaint();
                     log("flow navigator display renderer enabled");
                 }
-            } catch (Throwable t) { flowTrees.put(tree,Boolean.TRUE); log("flow renderer unavailable: "+t); }
+            } catch (Throwable t) {
+                if (!flowTreeFailures.containsKey(tree)) { flowTreeFailures.put(tree,Boolean.TRUE); log("flow renderer unavailable: "+t); }
+            }
         }
+        // The explicitly wrapped Flow Navigator renderer above is display-only;
+        // all other tree content and every tree model remain untouched.
+        if (c instanceof JTree) return;
         if (c instanceof AbstractButton) {
             AbstractButton b=(AbstractButton)c;
             String original=b.getText(), replacement=translated(original);

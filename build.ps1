@@ -13,15 +13,17 @@ if ($JdkHome) {
 }
 foreach ($tool in @($javac,$jar,$java)) { if (-not (Test-Path -LiteralPath $tool -PathType Leaf)) { throw "JDK tool not found: $tool" } }
 $build=Join-Path $root ('.build\' + [Guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Force -Path $build | Out-Null
+$classes=Join-Path $build 'classes'
+New-Item -ItemType Directory -Force -Path $classes | Out-Null
 $sources=@('VivadoChineseAgentV2.java','VivadoAttach.java','TranslationSelfTest.java') | ForEach-Object { Join-Path (Join-Path $root 'src') $_ }
-& $javac --release 8 -Xlint:-options -encoding UTF-8 -d $build $sources
+& $javac --release 8 -Xlint:-options -encoding UTF-8 -d $classes $sources
 if ($LASTEXITCODE -ne 0) { throw 'Compilation failed. A JDK 9 or newer is required for --release.' }
 $newJar=Join-Path $build 'vivado-zh-agent.jar'
-& $jar cfm $newJar (Join-Path $root 'manifest.mf') -C $build .
+& $jar cfm $newJar (Join-Path $root 'manifest.mf') -C $classes .
 if ($LASTEXITCODE -ne 0) { throw 'JAR creation failed.' }
+Copy-Item -LiteralPath (Join-Path $root 'translations.tsv') -Destination $build
+& $java '-Djava.awt.headless=true' ("-javaagent:$newJar") -cp $newJar TranslationSelfTest
+if ($LASTEXITCODE -ne 0) { throw 'Agent self-test failed.' }
 $target=Join-Path $root 'vivado-zh-agent.jar'
 Copy-Item -LiteralPath $newJar -Destination $target -Force
-& $java '-Djava.awt.headless=true' ("-javaagent:$target") -cp $target TranslationSelfTest
-if ($LASTEXITCODE -ne 0) { throw 'Agent self-test failed.' }
 Write-Host 'Build and basic self-test completed.'

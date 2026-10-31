@@ -23,7 +23,9 @@
 | Java 8 | 编译目标为 Java 8；尚未在真实 Java 8 运行时测试 |
 | 其他 Vivado 版本 | 通用控件翻译属实验性；2025.2 流程导航的内部类适配不会用于未知版本 |
 
-不同版本可能调整界面内部实现；字节码可加载不等于所有界面和功能均已兼容。本工具不会替换 Verilog 源文件、Tcl 命令或 Vivado 的日志文字，但汉化后的显示文本仍可能影响少数依赖文本的操作，请使用前备份重要工程。
+不同版本可能调整界面内部实现；字节码可加载不等于所有界面和功能均已兼容。补丁不会遍历编辑器、表格、列表或普通树的数据渲染区域，也不会替换 Verilog 源文件、Tcl 命令或 Vivado 的日志文字；汉化后的显示文本仍可能影响少数依赖文本的操作，请使用前备份重要工程。
+
+仓库的 Windows GitHub Actions 包含 Java 8、11、17、21 的自动化自检，以及使用伪安装目录的启动脚本测试。自检不包含 Vivado 程序本身；各版本的实际运行结果请查看 Actions，不应据此推断所有 Vivado 版本均已通过验证。
 
 ## 查找安装与参数
 
@@ -33,7 +35,7 @@
 .\one_click.bat -StartNew -VivadoRoot "D:\Apps\Vivado\2025.2"
 ```
 
-`-StartNew` 启动新窗口；`-ProcessId 12345` 指定正在运行的 Vivado 主窗口 PID。文件夹路径支持中文和空格。实时注入若不可用，脚本会提示并回退为启动新窗口。
+`-StartNew` 启动新窗口；`-ProcessId 12345` 指定正在运行的 Vivado 主窗口 PID，两者不能同时使用。文件夹路径支持中文和空格；显式指定的 `-VivadoRoot` 无效时会报错，不会切换到其他安装。实时注入若不可用，脚本会提示并回退为启动新窗口。
 
 ## 从源码构建
 
@@ -43,7 +45,7 @@
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -JdkHome "C:\path\to\jdk"
 ```
 
-省略 `-JdkHome` 时，脚本尝试使用 `JAVA_HOME` 或 `PATH`。构建使用 `javac --release 8`，随后在该 JDK 上执行无界面自检。确保没有运行中的 Vivado 正在使用仓库中的 JAR，再覆盖构建产物。已注入进程的词表不会自动刷新，需要重新启动并加载补丁。
+省略 `-JdkHome` 时，脚本尝试使用 `JAVA_HOME` 或 `PATH`。构建使用 `javac --release 8`，先对临时产物执行无界面自检，成功后才覆盖仓库中的 JAR。确保没有运行中的 Vivado 正在使用该 JAR。已注入进程的词表不会自动刷新，需要重新启动并加载补丁。
 
 ## 文件说明
 
@@ -53,6 +55,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -JdkHome "C:\pat
 - `src/TranslationSelfTest.java`：基础控件、自检与动作命令保护检查。
 - `translations.tsv`：UTF-8 词表，每行英文和中文以制表符分隔。
 - `build.ps1`、`manifest.mf`：构建与 agent 清单。
+- `tests/launcher.tests.ps1`：启动脚本的隔离测试；不会启动真正的 Vivado。
+- `tests/build.tests.ps1`：验证构建自检失败时保留原 JAR。
 
 本项目可能生成 `patch.log`；默认不会上传日志或用户工程。诊断模式可能记录界面节点及路径，请检查日志后再分享。
 

@@ -1,0 +1,43 @@
+name: Windows Java compatibility
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  self-test:
+    name: Java ${{ matrix.java }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['8', '11', '17', '21']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Compile Java 8 bytecode and run build self-test
+        shell: powershell
+        run: ./build.ps1
+      - name: Test launcher with isolated fake installations
+        shell: powershell
+        run: ./tests/launcher.tests.ps1
+      - name: Ensure failed self-test preserves the previous JAR
+        shell: powershell
+        run: ./tests/build.tests.ps1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - name: Test packaged agent on Java ${{ matrix.java }}
+        shell: powershell
+        run: |
+          $jar = Join-Path (Get-Location) 'vivado-zh-agent.jar'
+          & java '-Djava.awt.headless=true' ("-javaagent:$jar") -cp $jar TranslationSelfTest
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

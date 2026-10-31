@@ -9,7 +9,11 @@ if (-not (Test-Path -LiteralPath $agentJar -PathType Leaf) -or -not (Test-Path -
 }
 
 function Get-Version([string]$p) {
-    if ($p -match '(?<!\d)(20\d\d\.\d{1,2})(?!\d)') { return $Matches[1] }
+    # Prefer the version nearest the install root, not a year in an ancestor folder.
+    $parts = $p -split '[\\/]'
+    for ($i = $parts.Length - 1; $i -ge 0; $i--) {
+        if ($parts[$i] -match '(?<!\d)(20\d\d\.\d{1,2})(?!\d)') { return $Matches[1] }
+    }
     return 'unknown'
 }
 function Get-VivadoRoot([string]$exe) {
@@ -21,7 +25,14 @@ function Get-Java([string]$root) {
     $bases = @((Join-Path $root 'tps\win64'), (Join-Path (Split-Path -Parent $root) 'tps\win64'))
     foreach ($base in $bases) {
         if (Test-Path -LiteralPath $base -PathType Container) {
-            $dirs = @(Get-ChildItem -LiteralPath $base -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^(jre|jdk)' } | Sort-Object Name -Descending)
+            # jre8 sorts after jre21 lexically; compare Java major versions numerically.
+            $dirs = @(Get-ChildItem -LiteralPath $base -Directory -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -match '^(jre|jdk)' } |
+                Sort-Object -Property @{ Expression = {
+                    if ($_.Name -match '^(?:jre|jdk)[-_]?(\d+)(?:\.(\d+))?') {
+                        if ($Matches[1] -eq '1' -and $Matches[2]) { [int]$Matches[2] } else { [int]$Matches[1] }
+                    } else { 0 }
+                }; Descending = $true }, @{ Expression = { if ($_.Name -match '^jdk') { 1 } else { 0 } }; Descending = $true }, @{ Expression = 'Name'; Descending = $true })
             foreach ($dir in $dirs) {
                 $java = Join-Path $dir.FullName 'bin\java.exe'
                 if (Test-Path -LiteralPath $java -PathType Leaf) { return $java }
@@ -34,7 +45,11 @@ function Get-Java([string]$root) {
 }
 function Find-Install {
     $found = New-Object 'System.Collections.Generic.List[string]'
-    foreach ($candidate in @($VivadoRoot,$env:XILINX_VIVADO,$env:VIVADO_HOME)) {
+    if ($VivadoRoot) {
+        if (Test-Path -LiteralPath (Join-Path $VivadoRoot 'bin\vivado.bat') -PathType Leaf) { return $VivadoRoot }
+        throw '指定的 -VivadoRoot 不包含 bin\vivado.bat，已停止，未切换到其他安装。'
+    }
+    foreach ($candidate in @($env:XILINX_VIVADO,$env:VIVADO_HOME)) {
         if ($candidate -and (Test-Path -LiteralPath (Join-Path $candidate 'bin\vivado.bat') -PathType Leaf)) { $found.Add($candidate) }
     }
     if ($found.Count -gt 0) { return $found[0] }
@@ -63,6 +78,14 @@ function Find-Install {
     return $null
 }
 
+if ($StartNew -and $ProcessId -gt 0) {
+    Write-Host '-StartNew 和 -ProcessId 不能同时使用。' -ForegroundColor Red
+    exit 1
+}
+if ($VivadoRoot -and -not (Test-Path -LiteralPath (Join-Path $VivadoRoot 'bin\vivado.bat') -PathType Leaf)) {
+    Write-Host '指定的 -VivadoRoot 不包含 bin\vivado.bat，已停止，未切换到其他安装。' -ForegroundColor Red
+    exit 1
+}
 $running = @()
 if (-not $StartNew) {
     foreach ($p in @(Get-Process -Name vivado -ErrorAction SilentlyContinue)) {
@@ -72,6 +95,12 @@ if (-not $StartNew) {
             }
         } catch { }
     }
+}
+if ($VivadoRoot) {
+    $requestedRoot = [IO.Path]::GetFullPath($VivadoRoot).TrimEnd('\','/')
+    $running = @($running | Where-Object {
+        [string]::Equals([IO.Path]::GetFullPath($_.Root).TrimEnd('\','/'), $requestedRoot, [StringComparison]::OrdinalIgnoreCase)
+    })
 }
 $selected = $null
 if ($ProcessId -gt 0) {
@@ -120,7 +149,11 @@ if ($selected) {
             Write-Host '注入成功；重新启动原版 Vivado 可以恢复英文界面。' -ForegroundColor Green
             exit 0
         }
-        Write-Host '当前进程无法安全注入，将保留原窗口并启动新的增强版窗口。' -ForegroundColor Yellow
+        if ($attachExit -eq 3) {
+            Write-Host '当前窗口已加载旧版补丁；将保留原窗口并启动新的增强版窗口。' -ForegroundColor Yellow
+        } else {
+            Write-Host '当前进程无法安全注入，将保留原窗口并启动新的增强版窗口。' -ForegroundColor Yellow
+        }
     } else { Write-Host '未找到可用 Java 附加工具，将启动新的增强版窗口。' -ForegroundColor Yellow }
 }
 
